@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -13,7 +15,7 @@
         tools:targetApi="31">
 
         <activity
-            android:name=".PinActivity"
+            android:name=".OpeningActivity"
             android:theme="@style/AppTheme"
             android:exported="true">
             <intent-filter>
@@ -23,12 +25,12 @@
         </activity>
 
         <activity
-            android:name=".WalletActivity"
+            android:name=".PinActivity"
             android:theme="@style/AppTheme"
-            android:parentActivityName=".PinActivity">
+            android:parentActivityName=".OpeningActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value=".PinActivity" />
+                android:value=".OpeningActivity" />
         </activity>
 
     </application>

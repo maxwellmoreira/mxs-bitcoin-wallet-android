@@ -1,17 +1,26 @@
 package com.mxs.bitcoin.wallet
 
-import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.widget.Button
 import android.widget.EditText
-import androidx.appcompat.app.AppCompatActivity
-import com.mxs.bitcoin.wallet.core.Crypto
-import java.util.Collections
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import androidx.biometric.BiometricManager
+import androidx.fragment.app.FragmentActivity
+import com.mxs.bitcoin.wallet.core.Biometric
+import com.mxs.bitcoin.wallet.core.SqlCipher
+import java.util.*
+import net.sqlcipher.database.SQLiteDatabase
 
 /**
  * Activity responsible for accessing the wallet using the PIN (Personal Identification Number)
  */
-class PinActivity : AppCompatActivity() {
+class PinActivity : FragmentActivity() {
+
+    private lateinit var sqlCipher: SqlCipher
 
     /**
      * Function responsible for initializing the activity, defining the layout and configuring the
@@ -20,6 +29,7 @@ class PinActivity : AppCompatActivity() {
      * @param savedInstanceState used to store information about the previous state of the activity
      * in case it has been destroyed and needs to be recreated
      */
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -39,19 +49,6 @@ class PinActivity : AppCompatActivity() {
         val buttonOk = findViewById<Button>(R.id.btn_ok)
         val editTextPin = findViewById<EditText>(R.id.edt_pin)
 
-        val crypto = Crypto()
-
-        val seeds = "grass scare swamp any pond purchase repeat dutch catch garbage trigger scene chef spice omit merge illness ankle win equal topic deliver input machine"
-        val pin = "278913"
-
-        println("Sementes: $seeds")
-
-        val mensagemCriptografada = crypto.encryptSeeds(seeds, pin)
-        println("Mensagem criptografada: ${mensagemCriptografada.contentToString()}")
-
-        val mensagemDescriptografada = crypto.decryptSeeds(mensagemCriptografada, pin)
-        println("Mensagem descriptografada: $mensagemDescriptografada")
-
         /**
          * Function responsible for shuffling a list of numbers from 0 to 9
          *
@@ -70,7 +67,18 @@ class PinActivity : AppCompatActivity() {
         fun eraseAndShuffle() {
             editTextPin.setText("")
             val numberList = shuffleNumbers()
-            val buttons = listOf(button0, button1, button2, button3, button4, button5, button6, button7, button8, button9)
+            val buttons = listOf(
+                button0,
+                button1,
+                button2,
+                button3,
+                button4,
+                button5,
+                button6,
+                button7,
+                button8,
+                button9
+            )
             buttons.forEachIndexed { index, button -> button.text = numberList[index] }
         }
 
@@ -132,8 +140,46 @@ class PinActivity : AppCompatActivity() {
         }
 
         buttonOk.setOnClickListener {
-            val intent = Intent(this, WalletActivity::class.java)
-            startActivity(intent)
+
+            if (editTextPin.text.length != 6) {
+                Toast.makeText(this, "O PIN deve ter 6 digitos.", Toast.LENGTH_LONG).show()
+            } else {
+
+                val biometricManager = BiometricManager.from(this)
+                val biometric = Biometric(biometricManager)
+                val isTrue = biometric.validateBiometrics(this)
+
+                if (!isTrue) {
+
+                    Toast.makeText(
+                        this, "A biometria não está configurada no dispositivo. " +
+                                "Para mais segurança, ative-a.", Toast.LENGTH_LONG
+                    ).show()
+
+                    Handler(Looper.getMainLooper())
+                        .postDelayed(
+                            {
+                                SQLiteDatabase.loadLibs(this)
+
+                                val password = "mysecretpassword"
+                                sqlCipher = SqlCipher(this, password)
+                                sqlCipher.insertData("Maxwell")
+                                Toast.makeText(this, "Data inserted successfully!", Toast.LENGTH_SHORT).show()
+
+                                val password1 = "mysecretpassword"
+                                sqlCipher = SqlCipher(this, password1)
+                                val data = sqlCipher.queryData("Maxwell")
+                                val stringBuilder = StringBuilder()
+                                for (item in data) {
+                                    stringBuilder.append("ID: ${item.first}, Name: ${item.second}\n")
+                                }
+
+                                println("============>>>>> $stringBuilder.toString()")
+
+                            }, 3000
+                        )
+                }
+            }
         }
     }
 }

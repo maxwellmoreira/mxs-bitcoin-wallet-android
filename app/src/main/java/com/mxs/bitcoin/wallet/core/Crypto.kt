@@ -1,66 +1,52 @@
 package com.mxs.bitcoin.wallet.core
 
-import java.security.MessageDigest
+import java.security.spec.KeySpec
+import java.util.*
 import javax.crypto.Cipher
+import javax.crypto.SecretKey
+import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
-/**
- * Class responsible for implementing cryptography-related functions during the seeds manipulation process
- */
+
 class Crypto {
 
-    /**
-     * AES_MODE standard mode that works with the AES encryption algorithm
-     * SHA_256 hashing used to generate the encryption key
-     */
-    companion object {
-        private const val AES_MODE = "AES/CBC/PKCS5Padding"
-        private const val SHA_256 = "SHA-256"
+    private val SECRET_KEY = "my_super_secret_key"
+    private val SALT = "ssshhhhhhhhhhh!!!!"
+
+    fun encrypt(strToEncrypt: String): String? {
+        try {
+            val iv = byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            val ivspec = IvParameterSpec(iv)
+            val factory: SecretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+            val spec: KeySpec = PBEKeySpec(SECRET_KEY.toCharArray(), SALT.toByteArray(), 65536, 256)
+            val tmp: SecretKey = factory.generateSecret(spec)
+            val secretKey = SecretKeySpec(tmp.encoded, "AES")
+            val cipher: Cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivspec)
+            return Base64.getEncoder()
+                .encodeToString(cipher.doFinal(strToEncrypt.toByteArray(Charsets.UTF_8)))
+        } catch (e: Exception) {
+            println("Error while encrypting: $e")
+        }
+        return null
     }
 
-    /**
-     * Function responsible for generating a cryptographic hash of type SHA-256 based on the pin
-     * provided by the user
-     *
-     * @param pin in-app user security code
-     * @return byte array containing the cryptographic hash
-     */
-    private fun generateKey(pin: String): SecretKeySpec {
-        val sha = MessageDigest.getInstance(SHA_256)
-        sha.update(pin.toByteArray())
-        return SecretKeySpec(sha.digest(), "AES")
-    }
-
-    /**
-     * Function responsible for encrypting the access seeds for the wallet using the AES symmetric
-     * encryption algorithm with the key derived from the user's security code,
-     * using CBC mode and PKCS5 padding
-     *
-     * @param seeds encrypted seeds that correspond to the private access key for the wallet
-     * @param pin in-app user security code
-     * @return array of bytes containing the cryptographic hash of the seeds
-     */
-    fun encryptSeeds(seeds: String, pin: String): ByteArray {
-        val cipher = Cipher.getInstance(AES_MODE)
-        val iv = ByteArray(cipher.blockSize)
-        val ivParameterSpec = IvParameterSpec(iv)
-        cipher.init(Cipher.ENCRYPT_MODE, generateKey(pin), ivParameterSpec)
-        return cipher.doFinal(seeds.toByteArray())
-    }
-
-    /**
-     * Function responsible for decrypting the wallet access seeds
-     *
-     * @param encryptedSeeds array of bytes containing the cryptographic hash of the seeds
-     * @param pin in-app user security code
-     * @return encrypted seeds that correspond to the private access key for the wallet
-     */
-    fun decryptSeeds(encryptedSeeds: ByteArray, pin: String): String {
-        val cipher = Cipher.getInstance(AES_MODE)
-        val iv = ByteArray(cipher.blockSize)
-        val ivParameterSpec = IvParameterSpec(iv)
-        cipher.init(Cipher.DECRYPT_MODE, generateKey(pin), ivParameterSpec)
-        return String(cipher.doFinal(encryptedSeeds))
+    fun decrypt(strToDecrypt: String?): String? {
+        try {
+            val iv = byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            val ivspec = IvParameterSpec(iv)
+            val factory: SecretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+            val spec: KeySpec = PBEKeySpec(SECRET_KEY.toCharArray(), SALT.toByteArray(), 65536, 256)
+            val tmp: SecretKey = factory.generateSecret(spec)
+            val secretKey = SecretKeySpec(tmp.encoded, "AES")
+            val cipher: Cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, ivspec)
+            return String(cipher.doFinal(Base64.getDecoder().decode(strToDecrypt)))
+        } catch (e: java.lang.Exception) {
+            println("Error while decrypting: $e")
+        }
+        return null
     }
 }
