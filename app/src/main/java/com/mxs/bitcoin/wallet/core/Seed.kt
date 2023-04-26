@@ -22,16 +22,18 @@ class Seed {
     }
 
     /**
-     * Method responsible for generating a 256-bit deterministic seed for a Bitcoin wallet.
+     * function responsible for seed generation
+     *
+     * @param password password used in seed generation and wallet restoration
+     * @return list of mnemonic words that represent seeds
      */
-    fun generateSeed() {
-        val passphrase = "password"
+    fun generateSeed(password: String): List<String> {
         val entropy = ByteArray(32)
-        SecureRandom().nextBytes(entropy)
+        SecureRandom.getInstanceStrong().nextBytes(entropy)
         val seedWords = MnemonicCode().toMnemonic(entropy)
-        val seed = DeterministicSeed(seedWords, null, passphrase, 0)
-        println("seedWords: ${seedWords}")
-        println("Palavras-chave: ${seed.mnemonicCode}")
+        val timestamp = System.currentTimeMillis() / 1000
+        val seed = DeterministicSeed(seedWords, null, password, timestamp)
+        return seed.mnemonicCode!!
     }
 
     /**

@@ -9,12 +9,17 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
-
+/**
+ *
+ */
 class Crypto {
 
     private val SECRET_KEY = "my_super_secret_key"
     private val SALT = "ssshhhhhhhhhhh!!!!"
 
+    /**
+     *
+     */
     fun encrypt(strToEncrypt: String): String? {
         try {
             val iv = byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -33,6 +38,9 @@ class Crypto {
         return null
     }
 
+    /**
+     *
+     */
     fun decrypt(strToDecrypt: String?): String? {
         try {
             val iv = byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
@@ -48,5 +56,23 @@ class Crypto {
             println("Error while decrypting: $e")
         }
         return null
+    }
+
+    /**
+     *
+     */
+    fun generateLetterSequences(numbers: Array<Int>): Map<Int, List<Char>> {
+        val alphabet = ('A'..'Z').toList() + ('0'..'9').toList()
+        val result = mutableMapOf<Int, List<Char>>()
+        for (number in numbers.distinct()) {
+            val remainingLetters = alphabet.toMutableList()
+            val sequence = mutableListOf<Char>()
+            for (i in 1..36) {
+                val randomIndex = (0 until remainingLetters.size).random()
+                sequence.add(remainingLetters.removeAt(randomIndex))
+            }
+            result[number] = sequence
+        }
+        return result
     }
 }

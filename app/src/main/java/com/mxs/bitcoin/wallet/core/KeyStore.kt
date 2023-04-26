@@ -10,11 +10,9 @@ import java.util.*
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 
-/**
- *
- */
-class KeyStore {
 
+
+class KeyStore {
     /**
      *
      */

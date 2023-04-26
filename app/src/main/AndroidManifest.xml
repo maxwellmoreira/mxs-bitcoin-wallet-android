@@ -16,8 +16,8 @@
 
         <activity
             android:name=".OpeningActivity"
-            android:theme="@style/AppTheme"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -25,9 +25,36 @@
         </activity>
 
         <activity
+            android:name=".WarningActivity"
+            android:parentActivityName=".OpeningActivity"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".OpeningActivity" />
+        </activity>
+
+        <activity
+            android:name=".RegisterActivity"
+            android:parentActivityName=".WarningActivity"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".WarningActivity" />
+        </activity>
+
+        <activity
             android:name=".PinActivity"
-            android:theme="@style/AppTheme"
-            android:parentActivityName=".OpeningActivity">
+            android:parentActivityName=".RegisterActivity"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".RegisterActivity" />
+        </activity>
+
+        <activity
+            android:name=".AccessActivity"
+            android:parentActivityName=".OpeningActivity"
+            android:theme="@style/AppTheme">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".OpeningActivity" />

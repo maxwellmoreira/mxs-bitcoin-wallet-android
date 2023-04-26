@@ -2,15 +2,22 @@ package com.mxs.bitcoin.wallet.core
 
 import android.content.ContentValues
 import android.content.Context
+import android.util.Log
 import net.sqlcipher.database.SQLiteDatabase
 import net.sqlcipher.database.SQLiteOpenHelper
+import java.io.File
 
 /**
  * Class responsible for operations with SqlCipher.
  * The database is fully encrypted. User PIN is required to access your information.
  */
-class SqlCipher(context: Context, password: String) :
+class SqlCipher(context: Context) :
     SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+
+    init {
+        val databasePath = context.getDatabasePath(DATABASE_NAME).absolutePath
+        Log.d("SqlCipher", "Database path: $databasePath")
+    }
 
     /**
      *
@@ -18,12 +25,13 @@ class SqlCipher(context: Context, password: String) :
     companion object {
         private const val DATABASE_VERSION = 1
         private const val DATABASE_NAME = "mxs_bitcoin_wallet.db"
+        private const val DATABASE_PATH = "/data/user/0/com.mxs.bitcoin.wallet/databases/$DATABASE_NAME"
     }
 
     /**
      *
      */
-    private val passwordBytes = SQLiteDatabase.getBytes(password.toCharArray())
+    private val passwordBytes = SQLiteDatabase.getBytes("password".toCharArray())
 
     /**
      *
@@ -69,5 +77,15 @@ class SqlCipher(context: Context, password: String) :
         cursor.close()
         db.close()
         return data
+    }
+
+    /**
+     * function responsible for checking the existence of the database "mxs_bitcoin_wallet.db"
+     *
+     * @return if true the database exists
+     */
+    fun checkDatabaseFileExists(): Boolean {
+        val file = File(DATABASE_PATH)
+        return file.exists()
     }
 }
