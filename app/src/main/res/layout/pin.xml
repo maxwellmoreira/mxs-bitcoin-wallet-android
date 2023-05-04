@@ -43,7 +43,7 @@
         android:layout_marginTop="5sp"
         android:layout_marginBottom="15sp"
         android:background="@color/white"
-        android:inputType="textPassword" />
+        android:inputType="numberPassword" />
 
     <Button
         android:id="@+id/btn_pin_finish"

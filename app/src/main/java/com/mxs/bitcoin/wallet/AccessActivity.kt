@@ -1,5 +1,6 @@
 package com.mxs.bitcoin.wallet
 
+import android.database.sqlite.SQLiteDatabase
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -12,7 +13,6 @@ import androidx.biometric.BiometricManager
 import androidx.fragment.app.FragmentActivity
 import com.mxs.bitcoin.wallet.core.Biometric
 import com.mxs.bitcoin.wallet.core.SqlCipher
-import net.sqlcipher.database.SQLiteDatabase
 import java.util.*
 
 /**
@@ -173,26 +173,7 @@ class AccessActivity : FragmentActivity() {
                         .postDelayed(
                             {
 
-                                /*val numbers = arrayOf(1, 2, 3, 4, 5)
-                                val sequences = Crypto().generateLetterSequences(numbers)
-                                for ((key, value) in sequences) {
-                                    println("Sequence for number $key: $value")
-                                }*/
-
-                                SQLiteDatabase.loadLibs(this)
-
-                                /*val password = "mysecretpassword"
-                                sqlCipher = SqlCipher(this, password)
-                                sqlCipher.insertData("Maxwell")
-                                Toast.makeText(this, "Data inserted successfully!", Toast.LENGTH_SHORT).show()*/
-
-                                val password1 = "mysecretpassword"
-                                sqlCipher = SqlCipher(this)
-                                val data = sqlCipher.queryData("Maxwell")
-                                val stringBuilder = StringBuilder()
-                                for (item in data) {
-                                    stringBuilder.append("ID: ${item.first}, Name: ${item.second}\n")
-                                }
+                            // AQUI
 
                             }, 3000
                         )

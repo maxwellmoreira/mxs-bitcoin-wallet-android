@@ -1,73 +1,77 @@
 package com.mxs.bitcoin.wallet.core
 
-import org.bouncycastle.crypto.Digest
-import org.bouncycastle.crypto.digests.SHA256Digest
-import org.bouncycastle.crypto.generators.HKDFBytesGenerator
-import org.bouncycastle.crypto.params.HKDFParameters
-import java.nio.charset.StandardCharsets
-import java.security.KeyStore
-import java.util.*
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
+import android.util.Base64
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
-import javax.crypto.spec.SecretKeySpec
+import javax.crypto.spec.GCMParameterSpec
 
-
-
+/**
+ *
+ */
 class KeyStore {
+
     /**
      *
      */
-    fun setEntryKeyStore() {
-        val keySet = generateSecretKeyFromSHA256("minha_senha")
-        val secretKeySet = KeyStore.SecretKeyEntry(keySet)
-
-        println("Secret Key Binary : " + String(secretKeySet.secretKey.encoded, charset("UTF-8")))
-        println("Secret Key to HexString : " + secretKeySet.secretKey.encoded.toHexString())
-        val secretKeySetBase64 = Base64.getEncoder().encodeToString(secretKeySet.secretKey.encoded)
-        println("Secret Key to Base64 : $secretKeySetBase64")
-
-        val password: CharArray = "minha_senha".toCharArray()
-        val protectionParameterSet: KeyStore.ProtectionParameter = KeyStore.PasswordProtection(password)
-
-        val androidCAStore = KeyStore.getInstance(KeyStore.getDefaultType())
-        androidCAStore.load(null)
-        androidCAStore.setEntry("KEY_ALIAS", secretKeySet, protectionParameterSet)
+    companion object {
+        private const val ANDROID_KEY_STORE = "AndroidKeyStore"
+        private const val CIPHER_TRANSFORMATION = "AES/GCM/NoPadding"
     }
 
     /**
      *
      */
-    fun getEntryKeyStore() {
+    fun encrypt(plainText: String, keyAlias: String): String {
 
-        val androidCAStore = KeyStore.getInstance(KeyStore.getDefaultType())
-        androidCAStore.load(null)
+        val keyStore = java.security.KeyStore.getInstance(ANDROID_KEY_STORE).apply {
+            load(null)
+        }
+        var secretKey = keyStore.getKey(keyAlias, null) as? SecretKey
+        if (secretKey == null) {
+            val keyGenerator = KeyGenerator.getInstance(
+                KeyProperties.KEY_ALGORITHM_AES,
+                ANDROID_KEY_STORE
+            )
+            val keyGenParameterSpec = KeyGenParameterSpec.Builder(
+                keyAlias,
+                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+            )
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .build()
+            keyGenerator.init(keyGenParameterSpec)
+            secretKey = keyGenerator.generateKey()
+        }
 
-        val protectionParameterGet: KeyStore.ProtectionParameter = KeyStore.PasswordProtection("minha_senha".toCharArray())
+        val cipher = Cipher.getInstance(CIPHER_TRANSFORMATION)
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+        val iv = cipher.iv
+        val cipherText = cipher.doFinal(plainText.toByteArray())
 
-        val keyStoreEntry = androidCAStore.getEntry("KEY_ALIAS", protectionParameterGet) as KeyStore.SecretKeyEntry
-        println("Secret Key Binary : " + String(keyStoreEntry.secretKey.encoded, charset("UTF-8")))
-        println("Secret Key to HexString : " + keyStoreEntry.secretKey.encoded.toHexString())
-        val base64Key = Base64.getEncoder().encodeToString(keyStoreEntry.secretKey.encoded)
-        println("Secret Key to Base64 : $base64Key")
+        val cipherTextBase64 = Base64.encodeToString(cipherText, Base64.DEFAULT)
+        val ivBase64 = Base64.encodeToString(iv, Base64.DEFAULT)
+        return "$cipherTextBase64:$ivBase64"
     }
 
+    /**
+     *
+     */
+    fun decrypt(cipherTextBase64: String, keyAlias: String): String {
+        val parts = cipherTextBase64.split(":")
+        val cipherText = Base64.decode(parts[0], Base64.DEFAULT)
+        val iv = Base64.decode(parts[1], Base64.DEFAULT)
 
+        val cipher = Cipher.getInstance(CIPHER_TRANSFORMATION)
+        val keyStore = java.security.KeyStore.getInstance(ANDROID_KEY_STORE).apply {
+            load(null)
+        }
+        val secretKey = keyStore.getKey(keyAlias, null) as SecretKey
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(128, iv))
+        val plainText = cipher.doFinal(cipherText)
 
-    private fun ByteArray.toHexString(): String {
-        return joinToString("") { byte -> "%02x".format(byte) }
-    }
-
-    fun generateSecretKeyFromSHA256(stringToHash: String): SecretKey {
-        val stringBytes = stringToHash.toByteArray(StandardCharsets.UTF_8)
-        val sha256Digest: Digest = SHA256Digest()
-        sha256Digest.update(stringBytes, 0, stringBytes.size)
-        val hashResult = ByteArray(sha256Digest.digestSize)
-        sha256Digest.doFinal(hashResult, 0)
-
-        val hkdfGenerator = HKDFBytesGenerator(sha256Digest)
-        hkdfGenerator.init(HKDFParameters(hashResult, null, null))
-        val keyBytes = ByteArray(16)
-        hkdfGenerator.generateBytes(keyBytes, 0, keyBytes.size)
-
-        return SecretKeySpec(keyBytes, "AES")
+        return String(plainText)
     }
 }
