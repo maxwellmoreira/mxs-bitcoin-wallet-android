@@ -1,7 +1,6 @@
 package com.mxs.bitcoin.wallet
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.widget.Button
@@ -10,11 +9,21 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.mxs.bitcoin.wallet.core.Seed
+import foundation.omni.rpc.OmniClient
+import org.bitcoinj.params.MainNetParams
+import org.bitcoinj.script.Script
+import org.bitcoinj.wallet.DeterministicSeed
+import org.bitcoinj.wallet.Wallet
+import org.consensusj.bitcoin.jsonrpc.RpcConfig
+import java.net.URI
 
 /**
  *
  */
 class RegisterActivity : FragmentActivity() {
+
+    private lateinit var seed: DeterministicSeed
+    private lateinit var password: String
 
     /**
      *
@@ -40,11 +49,13 @@ class RegisterActivity : FragmentActivity() {
         textViewRegisterSeeds.text = ""
 
         buttonGenerateSeeds.setOnClickListener {
-            val seeds = Seed().generateSeed(editTextRegisterSeeds.text.toString())
+            password = editTextRegisterSeeds.text.toString()
+            seed = Seed().generateSeed(password)
+
             var formattedSeeds = "\n"
             var counter = 0
 
-            for (word in seeds) {
+            for (word in seed.mnemonicCode!!) {
                 formattedSeeds += "$word    "
                 counter++
                 if (counter == 4) {
@@ -65,9 +76,23 @@ class RegisterActivity : FragmentActivity() {
         }
 
         buttonNext.setOnClickListener {
-            val pinIntent = Intent(this, PinActivity::class.java)
-            pinIntent.putExtra("seeds", textViewRegisterSeeds.text.toString())
-            startActivity(pinIntent)
+            //val pinIntent = Intent(this, PinActivity::class.java)
+            //val mnemonicCodeArray = seed.mnemonicCode?.toTypedArray()
+
+            val networkParameters = MainNetParams.get()
+            val wallet = Wallet.fromSeed(networkParameters, seed, Script.ScriptType.P2PKH)
+            val address = wallet.freshReceiveAddress().toString()
+            println("address ------------------> $address")
+            val uri = URI("https://blockstream.info/testnet/api/")
+            val rpcConfig = RpcConfig(networkParameters, uri, "", "")
+            val omniClient = OmniClient(rpcConfig)
+            val usdtBalance = omniClient.getBalance(address, 31)
+
+            println("o saldo ehhhhh --------------------> $usdtBalance")
+
+            //pinIntent.putExtra("seed", mnemonicCodeArray)
+            //pinIntent.putExtra("password", password)
+            //startActivity(pinIntent)
         }
     }
 }

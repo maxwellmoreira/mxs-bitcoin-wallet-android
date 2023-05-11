@@ -21,7 +21,7 @@ class PrivateKey {
     /**
      *
      */
-    fun encrypt(seed: String, iv: ByteArray, salt: ByteArray, key: String): String {
+    fun encrypt(privateKey: String, iv: ByteArray, salt: ByteArray, key: String): String {
         val ivspec = IvParameterSpec(iv)
         val factory: SecretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
         val spec: KeySpec = PBEKeySpec(key.toCharArray(), salt, 65536, 256)
@@ -29,13 +29,13 @@ class PrivateKey {
         val secretKey = SecretKeySpec(tmp.encoded, "AES")
         val cipher: Cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
         cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivspec)
-        return Base64.getEncoder().encodeToString(cipher.doFinal(seed.toByteArray(Charsets.UTF_8)))
+        return Base64.getEncoder().encodeToString(cipher.doFinal(privateKey.toByteArray(Charsets.UTF_8)))
     }
 
     /**
      *
      */
-    fun decrypt(seed: String, iv: ByteArray, salt: ByteArray, key: String): String {
+    fun decrypt(encryptedPrivateKey: String, iv: ByteArray, salt: ByteArray, key: String): String {
         val ivspec = IvParameterSpec(iv)
         val factory: SecretKeyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
         val spec: KeySpec = PBEKeySpec(key.toCharArray(), salt, 65536, 256)
@@ -43,7 +43,7 @@ class PrivateKey {
         val secretKey = SecretKeySpec(tmp.encoded, "AES")
         val cipher: Cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING")
         cipher.init(Cipher.DECRYPT_MODE, secretKey, ivspec)
-        return String(cipher.doFinal(Base64.getDecoder().decode(seed)))
+        return String(cipher.doFinal(Base64.getDecoder().decode(encryptedPrivateKey)))
     }
 
     /**

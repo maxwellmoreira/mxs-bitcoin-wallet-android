@@ -15,7 +15,7 @@ class Authenticator {
         for (i in 1..6) {
             resultList.add(encryptToSqlCipher(pin, i, i % 2 == 0))
         }
-        return Hash().convertToSha256(resultList.sorted().joinToString(""))
+        return resultList.sorted().joinToString("")
     }
 
     /**
@@ -26,7 +26,7 @@ class Authenticator {
         for (i in 1..6) {
             resultList.add(encryptToKeyStore(pin, i, i % 2 == 0))
         }
-        return Hash().convertToSha256(resultList.sortedDescending().joinToString(""))
+        return resultList.sortedDescending().joinToString("")
     }
 
     /**

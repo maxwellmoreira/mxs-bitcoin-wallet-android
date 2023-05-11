@@ -1,5 +1,6 @@
 package com.mxs.bitcoin.wallet.core
 
+import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import net.sqlcipher.database.SQLiteDatabase
@@ -52,7 +53,6 @@ class SqlCipher(context: Context, password: String) : SQLiteOpenHelper(context,
         db?.rawExecSQL("PRAGMA key = $password")
         db?.rawExecSQL("PRAGMA cipher_memory_security = ON;")
         db?.rawExecSQL("PRAGMA cipher_use_hmac = ON;")
-        db?.close()
     }
 
     /**
@@ -91,6 +91,7 @@ class SqlCipher(context: Context, password: String) : SQLiteOpenHelper(context,
      *
      * @return only 1 record should always come
      */
+    @SuppressLint("Range")
     fun getAllAlias(): List<Alias> {
         val db = getReadableDatabase(password)
         val cursor = db.rawQuery("SELECT * FROM alias", null)

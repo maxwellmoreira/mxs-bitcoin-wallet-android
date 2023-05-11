@@ -24,12 +24,14 @@ class KeyStore {
     /**
      *
      */
-    fun encrypt(plainText: String, keyAlias: String): String {
-
-        val keyStore = java.security.KeyStore.getInstance(ANDROID_KEY_STORE).apply {
-            load(null)
-        }
-        var secretKey = keyStore.getKey(keyAlias, null) as? SecretKey
+    fun encrypt(
+        encryptedPrivateKey: String,
+        keyAlias: String,
+        encryptedKeyStorePassword: String
+    ): String {
+        val keyStore = java.security.KeyStore.getInstance(ANDROID_KEY_STORE).apply { load(null) }
+        var secretKey =
+            keyStore.getKey(keyAlias, encryptedKeyStorePassword.toCharArray()) as? SecretKey
         if (secretKey == null) {
             val keyGenerator = KeyGenerator.getInstance(
                 KeyProperties.KEY_ALGORITHM_AES,
@@ -45,12 +47,10 @@ class KeyStore {
             keyGenerator.init(keyGenParameterSpec)
             secretKey = keyGenerator.generateKey()
         }
-
         val cipher = Cipher.getInstance(CIPHER_TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, secretKey)
         val iv = cipher.iv
-        val cipherText = cipher.doFinal(plainText.toByteArray())
-
+        val cipherText = cipher.doFinal(encryptedPrivateKey.toByteArray())
         val cipherTextBase64 = Base64.encodeToString(cipherText, Base64.DEFAULT)
         val ivBase64 = Base64.encodeToString(iv, Base64.DEFAULT)
         return "$cipherTextBase64:$ivBase64"
@@ -59,19 +59,20 @@ class KeyStore {
     /**
      *
      */
-    fun decrypt(cipherTextBase64: String, keyAlias: String): String {
+    fun decrypt(
+        cipherTextBase64: String,
+        keyAlias: String,
+        encryptedKeyStorePassword: String
+    ): String {
         val parts = cipherTextBase64.split(":")
         val cipherText = Base64.decode(parts[0], Base64.DEFAULT)
         val iv = Base64.decode(parts[1], Base64.DEFAULT)
-
         val cipher = Cipher.getInstance(CIPHER_TRANSFORMATION)
-        val keyStore = java.security.KeyStore.getInstance(ANDROID_KEY_STORE).apply {
-            load(null)
-        }
-        val secretKey = keyStore.getKey(keyAlias, null) as SecretKey
+        val keyStore = java.security.KeyStore.getInstance(ANDROID_KEY_STORE).apply { load(null) }
+        val secretKey =
+            keyStore.getKey(keyAlias, encryptedKeyStorePassword.toCharArray()) as SecretKey
         cipher.init(Cipher.DECRYPT_MODE, secretKey, GCMParameterSpec(128, iv))
         val plainText = cipher.doFinal(cipherText)
-
         return String(plainText)
     }
 }

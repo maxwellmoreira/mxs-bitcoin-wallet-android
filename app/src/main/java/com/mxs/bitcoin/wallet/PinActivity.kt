@@ -8,12 +8,16 @@ import android.widget.Button
 import android.widget.EditText
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import com.mxs.bitcoin.wallet.core.Seed
 import com.mxs.bitcoin.wallet.core.Wallet
 
 /**
  *
  */
 class PinActivity : FragmentActivity() {
+
+    private lateinit var seed: Array<String>
+    private lateinit var password: String
 
     /**
      *
@@ -25,6 +29,7 @@ class PinActivity : FragmentActivity() {
 
         val grayOutline = ContextCompat.getDrawable(this, R.drawable.gray_outline)
         val yellowOutline = ContextCompat.getDrawable(this, R.drawable.yellow_outline)
+
         val editTextPin = findViewById<EditText>(R.id.et_pin_pin)
         val buttonFinish = findViewById<Button>(R.id.btn_pin_finish)
 
@@ -32,7 +37,8 @@ class PinActivity : FragmentActivity() {
         buttonFinish.setTextColor(Color.parseColor("#FF0AA8AE"))
         buttonFinish.isEnabled = false
 
-        val seeds = intent.getStringExtra("seeds")
+        seed = intent.getStringArrayExtra("seed") as Array<String>
+        password = intent.getStringExtra("password").toString()
 
         /**
          *
@@ -57,12 +63,8 @@ class PinActivity : FragmentActivity() {
          *
          */
         buttonFinish.setOnClickListener {
-
-            val words = seeds!!.trim().replace("\n", "").split("\\s+".toRegex())
-            val newString = words.joinToString(",")
-            println("------------------------------> $newString")
-
-            Wallet().prepare(this,"278913")
+            val seed = Seed().restoreSeed(seed.toList(), password)
+            Wallet().prepare(this, "278913", seed)
 
             /*val accessIntent = Intent(this, AccessActivity::class.java)
             accessIntent.flags =
