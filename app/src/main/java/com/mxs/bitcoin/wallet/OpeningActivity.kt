@@ -6,8 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.ImageView
 import androidx.fragment.app.FragmentActivity
-import com.mxs.bitcoin.wallet.core.SqlCipher
-import com.mxs.bitcoin.wallet.core.Wallet
+import com.mxs.bitcoin.wallet.core.Initial
 
 /**
  *
@@ -48,7 +47,7 @@ class OpeningActivity : FragmentActivity() {
         Handler(Looper.getMainLooper())
             .postDelayed(
                 {
-                    val databaseExist = Wallet().checkDatabaseFileExists()
+                    val databaseExist = Initial().checkDatabaseFileExists()
                     if (databaseExist) {
                         val pinIntent = Intent(this, AccessActivity::class.java)
                         startActivity(pinIntent)

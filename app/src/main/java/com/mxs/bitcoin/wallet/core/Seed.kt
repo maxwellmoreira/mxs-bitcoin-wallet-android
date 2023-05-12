@@ -27,6 +27,4 @@ class Seed {
         val timestamp = System.currentTimeMillis() / 1000
         return DeterministicSeed(mnemonicList, null, password, timestamp)
     }
-
-
 }

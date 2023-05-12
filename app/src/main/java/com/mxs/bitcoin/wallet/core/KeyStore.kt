@@ -9,7 +9,10 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 /**
+ * KeyStore is a secure repository used to store cryptographic keys, certificates and other
+ * secrets related to security in Android applications.
  *
+ * In the context of this wallet the KeyStore will be used to store the private keys.
  */
 class KeyStore {
 
@@ -22,7 +25,13 @@ class KeyStore {
     }
 
     /**
+     * function responsible for storing the private key of the wallet in the KeyStore
      *
+     * @param encryptedPrivateKey
+     * @param keyAlias
+     * @param encryptedKeyStorePassword
+     *
+     * @return
      */
     fun encrypt(
         encryptedPrivateKey: String,
@@ -57,7 +66,13 @@ class KeyStore {
     }
 
     /**
+     * function responsible for exporting the KeyStore private key
      *
+     * @param cipherTextBase64
+     * @param keyAlias
+     * @param encryptedKeyStorePassword
+     *
+     * @return
      */
     fun decrypt(
         cipherTextBase64: String,

@@ -10,16 +10,24 @@ import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
 /**
- * When seeds are generated, they will be stored in the KeyStore.
- * However, not its original content, but the result of its encryption.
- * When it is necessary to check the balance or carry out a transfer,
- * it will be necessary to remove the seeds from the KeyStore and perform their decryption.
- * This class implements the seed encryption and decryption process.
+ * After the seeds are generated, the wallet's private key will be stored in the KeyStore.
+ * However, not the original content, but the result of its encryption.
+ * When you need to check your balance or make a transfer, you will need to remove
+ * the KeyStore private key and decrypt it.
+ * This class implements the private key encryption and decryption process.
  */
 class PrivateKey {
 
     /**
+     * function responsible for encrypting the seeds
      *
+     * @param privateKey cryptographic key that allows signing the transactions
+     * @param iv random number used in private key encryption
+     * @param salt random number used in private key encryption
+     * @param key generation result from the dictionary and the pin
+     * which will be used in the encryption of the private key
+     *
+     * @return cryptographic code that will be stored in the KeyStore
      */
     fun encrypt(privateKey: String, iv: ByteArray, salt: ByteArray, key: String): String {
         val ivspec = IvParameterSpec(iv)
@@ -33,7 +41,15 @@ class PrivateKey {
     }
 
     /**
+     * function responsible for decrypting the seeds
      *
+     * @param encryptedPrivateKey private key encrypted in the "encrypt" function
+     * and was stored in the KeyStore
+     * @param iv random number used in private key encryption
+     * @param salt random number used in private key encryption
+     * @param key generation result from the dictionary and the pin
+     *
+     * @return wallet private key
      */
     fun decrypt(encryptedPrivateKey: String, iv: ByteArray, salt: ByteArray, key: String): String {
         val ivspec = IvParameterSpec(iv)
@@ -47,14 +63,15 @@ class PrivateKey {
     }
 
     /**
-     * function responsible for generating the password that will be used to encrypt the seed
+     * function responsible for generating the password that will be used to encrypt the private key
+     * that will be stored in the KeyStore
      *
-     * @param pin
-     * @param dictionary
+     * @param pin code used by the user to access the application
+     * @param dictionary set of 216 characters that will be used to generate the password that will be part of the private key encryption
+     *
      * @return
      */
-    fun generateEncryptedPassword(pin: String, dictionary: List<String>): String {
-
+    fun generateEncryptionPassword(pin: String, dictionary: List<String>): String {
         val etapa1 = pin.mapIndexed { index, char ->
             val pinDigit = if (char == '0') index + 1 else char.toString().toInt()
             Dictionary().getDictionaryFragment(pinDigit, dictionary.subList(index * 36, (index + 1) * 36))
