@@ -63,8 +63,9 @@ class PinActivity : FragmentActivity() {
          *
          */
         buttonFinish.setOnClickListener {
-            val seed = Seed().restoreSeed(seed.toList(), password)
-            Wallet().prepare(this, "278913", seed)
+            val deterministicSeed = Seed().restoreSeed(seed.toList(), password)
+            Wallet().importPrivateKey(this, "278913", deterministicSeed)
+            Wallet().exportPrivateKey(this, "278913")
 
             /*val accessIntent = Intent(this, AccessActivity::class.java)
             accessIntent.flags =
