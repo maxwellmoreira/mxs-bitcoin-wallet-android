@@ -13,7 +13,7 @@ import com.mxs.bitcoin.wallet.core.Seed
 import org.bitcoinj.wallet.DeterministicSeed
 
 /**
- *
+ * class responsible for seed generation screen
  */
 class RegisterActivity : FragmentActivity() {
 

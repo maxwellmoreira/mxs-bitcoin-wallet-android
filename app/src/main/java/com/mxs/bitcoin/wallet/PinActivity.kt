@@ -1,5 +1,6 @@
 package com.mxs.bitcoin.wallet
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
@@ -64,13 +65,10 @@ class PinActivity : FragmentActivity() {
          */
         buttonFinish.setOnClickListener {
             val deterministicSeed = Seed().restoreSeed(seed.toList(), password)
-            Wallet().importPrivateKey(this, "278913", deterministicSeed)
-            Wallet().exportPrivateKey(this, "278913")
-
-            /*val accessIntent = Intent(this, AccessActivity::class.java)
-            accessIntent.flags =
-                Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(accessIntent)*/
+            Wallet().importPrivateKey(this, editTextPin.toString(), deterministicSeed)
+            val accessIntent = Intent(this, AccessActivity::class.java)
+            accessIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(accessIntent)
         }
     }
 }

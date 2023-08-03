@@ -13,14 +13,13 @@ import androidx.biometric.BiometricManager
 import androidx.fragment.app.FragmentActivity
 import com.mxs.bitcoin.wallet.core.Biometric
 import com.mxs.bitcoin.wallet.core.SqlCipher
+import com.mxs.bitcoin.wallet.core.Wallet
 import java.util.*
 
 /**
  * Activity responsible for accessing the wallet using the PIN (Personal Identification Number)
  */
 class AccessActivity : FragmentActivity() {
-
-    private lateinit var sqlCipher: SqlCipher
 
     /**
      * Function responsible for initializing the activity, defining the layout and configuring the
@@ -173,7 +172,7 @@ class AccessActivity : FragmentActivity() {
                         .postDelayed(
                             {
 
-                            // AQUI
+                            Wallet().exportPrivateKey(this, editTextPin.toString())
 
                             }, 3000
                         )
